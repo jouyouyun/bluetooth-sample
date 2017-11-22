@@ -1,3 +1,11 @@
+/**
+  * Scan nearly bluetooth devices by calling hci methods.
+  *
+  * Compile: gcc -Wall -g bluetooth_scan.c -lbluetooth
+  *
+  * Author: jouyouyun <jouyouwen717@gmail.com>
+ **/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
