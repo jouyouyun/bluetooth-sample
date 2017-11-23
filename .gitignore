@@ -2,3 +2,5 @@
 *.swap
 log
 a.out
+server
+client
