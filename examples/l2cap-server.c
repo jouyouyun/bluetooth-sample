@@ -14,64 +14,33 @@
 
 #include <sys/socket.h>
 #include <bluetooth/bluetooth.h>
-#include <bluetooth/rfcomm.h>
-
-int
-dynamic_bind_rc(int sk, struct sockaddr_rc *sockaddr, uint8_t *port)
-{
-    int err;
-    for (*port = 1; *port <= 31; (*port)++) {
-        sockaddr->rc_channel = *port;
-        err = bind(sk, (struct sockaddr*)sockaddr, sizeof(*sockaddr));
-        if (!err || errno == EINVAL) {
-            break;
-        }
-    }
-
-    if (*port == 31) {
-        err = -1;
-        errno = EINVAL;
-    }
-    return err;
-}
+#include <bluetooth/l2cap.h>
 
 int
 main(int argc, char *argv[])
 {
-    if (argc != 2) {
-        fprintf(stderr, "Usage: %s <bluetooth address>\n", argv[0]);
-        return -1;
-    }
-
-    struct sockaddr_rc loc_addr = {0}, rem_addr = {0};
+    struct sockaddr_l2 loc_addr = {0}, rem_addr = {0};
     char buf[1024] = {0};
     int sk, client, bytes_read;
     socklen_t opt = sizeof(rem_addr);
 
     // connect socket
-    sk = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
+    sk = socket(PF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP);
     if (sk < 0) {
-        fprintf(stderr, "Failed to connect rfcomm socket: %s\n", strerror(errno));
+        fprintf(stderr, "Failed to connect l2cap socket: %s\n", strerror(errno));
         return -1;
     }
 
     // bind socket to port 1 of the first available local bluetooth adapter
-    loc_addr.rc_family = AF_BLUETOOTH;
-    int ret = str2ba(argv[1], &loc_addr.rc_bdaddr);
-    if (ret != 0) {
-        fprintf(stderr, "Failed to convert bluetooth address: %s\n", strerror(errno));
-        close(sk);
-        return -1;
-    }
-
-    uint8_t port;
-    ret = dynamic_bind_rc(sk, &loc_addr, &port);
+    loc_addr.l2_family = PF_BLUETOOTH;
+    loc_addr.l2_psm = htobs(0x1001);
+    bacpy(&loc_addr.l2_bdaddr, BDADDR_ANY);
+    int ret = bind(sk, (struct sockaddr*)&loc_addr, sizeof(loc_addr));
     if (ret < 0) {
         fprintf(stderr, "Failed to bind port: %s\n", strerror(errno));
         close(sk);
         return -1;
     }
-    printf("Success to bind on %u\n", port);
 
     ret = listen(sk, 1);
     if (ret != 0) {
@@ -82,7 +51,7 @@ main(int argc, char *argv[])
 
     client = accept(sk, (struct sockaddr*)&rem_addr, &opt);
 
-    ba2str(&rem_addr.rc_bdaddr, buf);
+    ba2str(&rem_addr.l2_bdaddr, buf);
     printf("Accepted connection from %s\n", buf);
     memset(buf, 0, sizeof(buf));
 
