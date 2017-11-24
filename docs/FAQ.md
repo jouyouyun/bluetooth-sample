@@ -46,7 +46,7 @@
 
 ## 蓝牙鼠标使用中频繁断开
 
-蓝牙鼠标在使用过程中频繁出现了断开问题，试着从 `window` 那里获取最新的驱动，然后转成 `linux firmware`，方法请查看: [Install Firmware](install-firmare.md)
+蓝牙鼠标在使用过程中频繁出现了断开问题，试着从 `window` 那里获取最新的驱动，然后转成 `linux firmware`，方法请查看: [Firmware 安装](install-firmware.md)
 
 如果经过尝试还是没有效果, 那就反馈吧.
 
